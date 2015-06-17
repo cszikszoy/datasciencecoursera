@@ -1,6 +1,7 @@
 #! /usr/bin/Rscript
 
 library(httr)
+library(jsonlite)
 
 # 1. Find OAuth settings for github:
 #    http://developer.github.com/v3/oauth/
@@ -18,6 +19,17 @@ github_token <- oauth2.0_token(oauth_endpoints("github"), myapp)
 
 # 4. Use API
 gtoken <- config(token = github_token)
-req <- with_config(gtoken, GET("https://api.github.com/rate_limit"))
+req <- with_config(gtoken, GET("https://api.github.com/users/jtleek/repos"))
 stop_for_status(req)
-content(req)
+
+# content now contains info about the repositories
+content <- content(req)
+
+# convert this to JSON so we can read it using jsonlite
+data <- fromJSON(toJSON(content))
+
+# get the index of the repository
+index <- which(data$name == "datasharing")
+
+# get create time for this repository
+data$created_at[index]
